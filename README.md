@@ -45,8 +45,8 @@ cd fuel-route-optimizer
 
 # 2. Create and activate virtual environment
 python -m venv env
-source env/bin/activate    # Windows: env\Scripts\activate
-
+source env/bin/activate    
+env\Scripts\activate #for Windows
 # 3. Install Python requirements
 pip install -r requirements.txt
 
