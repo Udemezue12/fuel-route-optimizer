@@ -25,10 +25,12 @@ load_dotenv()
 
 SECRET_KEY = os.getenv('SECRET_KEY')
 
+FIRST_URL = os.getenv('PROD_URL_ONE')
+SECOND_URL = os.getenv('PROD_URL_TWO')
 
 # DEBUG = True
 
-ALLOWED_HOSTS = ["https://fuel-route-optimizer.onrender.com", "fuel-route-optimizer.onrender.com"]
+ALLOWED_HOSTS = [FIRST_URL, SECOND_URL]
 
 
 
@@ -202,14 +204,14 @@ CELERY_REDIS_MAX_CONNECTIONS = 10
 CELERY_WORKER_CONCURRENCY = 1
 
 # USE ONLY IN DEVELOPMENT FOR WINDOWS
-# GDAL_LIBRARY_PATH = r"C:/OSGeo4W/bin/gdal311.dll"
-# if os.name == "nt":
-#     OSGEO4W = r"C:/OSGeo4W"
-#     assert os.path.isdir(OSGEO4W), "OSGeo4W directory not found" + OSGEO4W
-#     os.environ["OSGEO4W_ROOT"] = OSGEO4W
-#     os.environ["GDAL_DATA"] = OSGEO4W + r"\share\gdal"
-#     os.environ["PROJ_LIB"] = OSGEO4W + r"\share\proj"
-#     os.environ["PATH"] = OSGEO4W + r"\bin;" + os.environ["PATH"]
+GDAL_LIBRARY_PATH = r"C:/OSGeo4W/bin/gdal311.dll"
+if os.name == "nt":
+    OSGEO4W = r"C:/OSGeo4W"
+    assert os.path.isdir(OSGEO4W), "OSGeo4W directory not found" + OSGEO4W
+    os.environ["OSGEO4W_ROOT"] = OSGEO4W
+    os.environ["GDAL_DATA"] = OSGEO4W + r"\share\gdal"
+    os.environ["PROJ_LIB"] = OSGEO4W + r"\share\proj"
+    os.environ["PATH"] = OSGEO4W + r"\bin;" + os.environ["PATH"]
 
 
 
