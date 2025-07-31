@@ -30,7 +30,7 @@ SECOND_URL = os.getenv('PROD_URL_TWO')
 
 # DEBUG = True
 
-ALLOWED_HOSTS = [FIRST_URL, SECOND_URL]
+ALLOWED_HOSTS = [*]
 
 
 
