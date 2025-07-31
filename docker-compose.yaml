@@ -1,0 +1,31 @@
+version: "3.9"
+
+services:
+  web:
+    build: .
+    container_name: fuel_web
+    command: uvicorn fuel_project.asgi:application --host 0.0.0.0 --port 8000
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    depends_on:
+      - redis
+    restart: always
+    entrypoint: ["/entrypoint.sh"]
+
+  worker:
+    build: .
+    container_name: fuel_worker
+    command: celery -A fuel_project worker --loglevel=info
+    volumes:
+      - .:/app
+    depends_on:
+      - redis
+    restart: always
+    entrypoint: ["/entrypoint.sh"]
+
+  redis:
+    image: redis:7-alpine
+    container_name: fuel_redis
+    restart: always
