@@ -9,7 +9,8 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
-import os, _ssl
+import os
+import _ssl
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -26,13 +27,13 @@ load_dotenv()
 SECRET_KEY = os.getenv('SECRET_KEY')
 
 FIRST_URL = os.getenv('PROD_URL_ONE')
-SECOND_URL = os.getenv('PROD_URL_TWO')
-
-# DEBUG = True
-
-ALLOWED_HOSTS = [FIRST_URL, SECOND_URL]
+SECOND_URL = os.getenv('PROD_URL_ONE')
 
 
+DEBUG = True
+
+
+ALLOWED_HOSTS = list(filter(None, [FIRST_URL, SECOND_URL])) or ['localhost']
 
 
 INSTALLED_APPS = [
@@ -85,10 +86,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'fuel_project.wsgi.application'
-
-
-
-
 
 
 DATABASES = {
@@ -186,9 +183,8 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
-
 CELERY_BROKER_URL = os.getenv("REDIS_URL")
-CELERY_RESULT_BACKEND =os.getenv("REDIS_URL")
+CELERY_RESULT_BACKEND = os.getenv("REDIS_URL")
 
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
@@ -212,7 +208,3 @@ CELERY_WORKER_CONCURRENCY = 1
 #     os.environ["GDAL_DATA"] = OSGEO4W + r"\share\gdal"
 #     os.environ["PROJ_LIB"] = OSGEO4W + r"\share\proj"
 #     os.environ["PATH"] = OSGEO4W + r"\bin;" + os.environ["PATH"]
-
-
-
-
