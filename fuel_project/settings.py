@@ -26,9 +26,9 @@ load_dotenv()
 SECRET_KEY = os.getenv('SECRET_KEY')
 
 
-DEBUG = True
+# DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["https://fuel-route-optimizer.onrender.com", "fuel-route-optimizer.onrender.com"]
 
 
 
@@ -147,13 +147,13 @@ CACHES = {
 }
 
 
-CSRF_TRUSTED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-]
-CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000", "http://127.0.0.1:3000",]
+# CSRF_TRUSTED_ORIGINS = [
+#     "http://localhost:3000",
+#     "http://127.0.0.1:3000",
+# ]
+# CORS_ALLOW_CREDENTIALS = True
+# CORS_ALLOWED_ORIGINS = [
+#     "http://localhost:3000", "http://127.0.0.1:3000",]
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 # for production
@@ -201,15 +201,15 @@ CELERY_BROKER_POOL_LIMIT = 5
 CELERY_REDIS_MAX_CONNECTIONS = 10
 CELERY_WORKER_CONCURRENCY = 1
 
-
-GDAL_LIBRARY_PATH = r"C:/OSGeo4W/bin/gdal311.dll"
-if os.name == "nt":
-    OSGEO4W = r"C:/OSGeo4W"
-    assert os.path.isdir(OSGEO4W), "OSGeo4W directory not found" + OSGEO4W
-    os.environ["OSGEO4W_ROOT"] = OSGEO4W
-    os.environ["GDAL_DATA"] = OSGEO4W + r"\share\gdal"
-    os.environ["PROJ_LIB"] = OSGEO4W + r"\share\proj"
-    os.environ["PATH"] = OSGEO4W + r"\bin;" + os.environ["PATH"]
+# USE ONLY IN DEVELOPMENT FOR WINDOWS
+# GDAL_LIBRARY_PATH = r"C:/OSGeo4W/bin/gdal311.dll"
+# if os.name == "nt":
+#     OSGEO4W = r"C:/OSGeo4W"
+#     assert os.path.isdir(OSGEO4W), "OSGeo4W directory not found" + OSGEO4W
+#     os.environ["OSGEO4W_ROOT"] = OSGEO4W
+#     os.environ["GDAL_DATA"] = OSGEO4W + r"\share\gdal"
+#     os.environ["PROJ_LIB"] = OSGEO4W + r"\share\proj"
+#     os.environ["PATH"] = OSGEO4W + r"\bin;" + os.environ["PATH"]
 
 
 
