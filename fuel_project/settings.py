@@ -26,14 +26,10 @@ load_dotenv()
 
 SECRET_KEY = os.getenv('SECRET_KEY')
 
-FIRST_URL = os.getenv('PROD_URL_ONE')
-SECOND_URL = os.getenv('PROD_URL_ONE')
-
 
 DEBUG = True
-ALLOWED_HOSTS = [FIRST_URL, SECOND_URL]
-
-# ALLOWED_HOSTS = list(filter(None, [FIRST_URL, SECOND_URL])) or ['localhost']
+ALLOWED_HOSTS = ["https://fuel-route-optimizer.onrender.com",
+                 "fuel-route-optimizer.onrender.com"]
 
 
 INSTALLED_APPS = [
@@ -146,13 +142,14 @@ CACHES = {
 }
 
 
-# CSRF_TRUSTED_ORIGINS = [
-#     "http://localhost:3000",
-#     "http://127.0.0.1:3000",
-# ]
-# CORS_ALLOW_CREDENTIALS = True
-# CORS_ALLOWED_ORIGINS = [
-#     "http://localhost:3000", "http://127.0.0.1:3000",]
+CSRF_TRUSTED_ORIGINS = [
+    "https://fuel-route-optimizer.onrender.com", "fuel-route-optimizer.onrender.com",
+]
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "https://fuel-route-optimizer.onrender.com", "fuel-route-optimizer.onrender.com"]
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 # for production
