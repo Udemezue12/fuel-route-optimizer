@@ -31,9 +31,9 @@ SECOND_URL = os.getenv('PROD_URL_ONE')
 
 
 DEBUG = True
+ALLOWED_HOSTS = [FIRST_URL, SECOND_URL]
 
-
-ALLOWED_HOSTS = list(filter(None, [FIRST_URL, SECOND_URL])) or ['localhost']
+# ALLOWED_HOSTS = list(filter(None, [FIRST_URL, SECOND_URL])) or ['localhost']
 
 
 INSTALLED_APPS = [
