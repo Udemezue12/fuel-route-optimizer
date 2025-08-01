@@ -8,15 +8,7 @@ services:
       - "8000:8000"
     volumes:
       - .:/app
-    depends_on:
-      - redis
     restart: always
     environment:
-      - REDIS_URL=redis://redis:6379
-    
+      - REDIS_URL=${REDIS_URL}
     entrypoint: ["/entrypoint.sh"]
-
-  redis:
-    image: redis:7-alpine
-    container_name: fuel_redis
-    restart: always
