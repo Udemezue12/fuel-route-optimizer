@@ -7,7 +7,7 @@ It calculates the **cheapest fuel stops** along a route in the USA, given a vehi
 
 ## 🌐 Live Demo
 
-🔗 **API Docs**: [https://fuel-route-optimizer.onrender.com/docs](https://fuel-route-optimizer.onrender.com/docs)
+🔗 **API Docs**: [https://fuel-route-optimizer.onrender.com](https://fuel-route-optimizer.onrender.com)
 
 Test endpoints, review schemas, and try the route planner with real input.
 
