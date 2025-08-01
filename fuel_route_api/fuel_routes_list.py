@@ -8,7 +8,7 @@ from fuel_route_api.schema import AvaliableRouteSchema
 from fuel_route_api.throttling import CustomAnonRateThrottle, CustomUserThrottle
 
 
-@api_controller(tags=['All Available Fuel and it Route Coordinates'])
+@api_controller(tags=['All Available Fuel and Route Coordinates'])
 @throttle(CustomAnonRateThrottle, CustomUserThrottle)
 class FuelRoutes:
     @inject
