@@ -1,10 +1,6 @@
 import asyncio
 import logging
-from celery import Task
-from fuel_route_api.route_service import GeoapifyService
-from fuel_route_api.fuel_stop_service import FuelStopService
-from fuel_route_api.dependencies import CacheDependencies, CacheKeyDependencies, CRUDDependencies
-
+from celery import Task, shared_task
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -16,6 +12,10 @@ class CalculateRouteTask(Task):
 
     def _setup_services(self):
         logger.info("🔧 Setting up service dependencies...")
+        from fuel_route_api.route_service import GeoapifyService
+        from fuel_route_api.fuel_stop_service import FuelStopService
+        from fuel_route_api.dependencies import CacheDependencies, CacheKeyDependencies, CRUDDependencies
+
         self.cache_deps = CacheDependencies()
         self.cache_key_deps = CacheKeyDependencies()
         self.crud_deps = CRUDDependencies()
@@ -47,6 +47,7 @@ class CalculateRouteTask(Task):
     async def _async_run(self, start_lat, start_lon, finish_lat, finish_lon):
         try:
             logger.info("📍 Validating coordinates...")
+
             coords = type("Coord", (), {
                 "start_lat": start_lat,
                 "start_lon": start_lon,
@@ -94,9 +95,18 @@ class CalculateRouteTask(Task):
 
         except Exception as e:
             logger.error(f"❌ Error in task: {str(e)}", exc_info=True)
-            print(f"❌ ERROR: {type(e).__name__} - {e}")
             self.update_state(state='FAILURE', meta={
                 'error': str(e),
                 'exc_type': type(e).__name__
             })
             raise
+
+
+
+@shared_task(bind=True)
+def example_task(self, name):
+    print(f"[Task] Started for {name}")
+    import time
+    time.sleep(5)
+    print(f"[Task] Finished for {name}")
+    return f"Hello, {name}!"

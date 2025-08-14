@@ -1,35 +1,33 @@
 import os
+import signal
+import time
 from celery import Celery
+from kombu.exceptions import OperationalError
 from dotenv import load_dotenv
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'fuel_project.settings')
+load_dotenv()
 
-import django
-from django.apps import apps
 
-if not apps.ready:
-        django.setup()
-from fuel_route_api.tasks import CalculateRouteTask 
-app = Celery('fuel_project')
-app.config_from_object('django.conf:settings', namespace='CELERY')
-app.conf.broker_url = os.getenv("REDIS_URL")
-app.conf.result_backend = os.getenv("REDIS_URL")
+app = Celery(
+    "fuel_project",
+    broker=os.getenv('REDIS_URL'),
+    backend=os.getenv('REDIS_URL'),
+)
+
+
 app.autodiscover_tasks()
 
-
-app.register_task(CalculateRouteTask())
-
-
 app.conf.update(
-    task_routes={
-        'fuel_route_api.tasks.calculate_route_task': {'queue': 'route_calculation'},
-    },
-    timezone='UTC',
-    enable_utc=True,
-    task_serializer='json',
-    result_serializer='json',
-    accept_content=['json'],
-    task_time_limit=300,
-    task_soft_time_limit=240,
-    result_backend=os.getenv("REDIS_URL")
+    task_always_eager=False,
+    worker_prefetch_multiplier=1,
+    worker_concurrency=1,
+    broker_connection_retry_on_startup=True,
 )
+
+def handle_sigterm(*args):
+    print("[Celery] SIGTERM received, waiting up to 300s for tasks to finish...")
+    time.sleep(300)  # 5 minutes
+    print("[Celery] Exiting after grace period.")
+    os._exit(0)
+
+signal.signal(signal.SIGTERM, handle_sigterm)
