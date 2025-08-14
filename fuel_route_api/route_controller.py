@@ -23,7 +23,7 @@ class RouteController:
         self.route_service = GeoapifyService(
             cache_deps=self.cache_deps, cache_key_deps=self.cache_key_deps)
 
-    @http_post('/calculate', response=TaskResponse, permissions=[IsAuthenticated] )
+    @http_post('/calculate', response=TaskResponse, permissions=[IsAuthenticated])
     async def calculate(self, request: Request, data: RouteInput):
         try:
            
@@ -47,7 +47,7 @@ class RouteController:
             print(f"❌ Error triggering task: {str(e)}")
             raise HttpError(
                 500, f"Failed to start route calculation: {str(e)}")
-
+# permissions=[IsAuthenticated]
     @http_get("/task/{task_id}", response=TaskResultResponse,  permissions=[IsAuthenticated])
     async def get_result(self, request: Request, task_id: str):
         try:
