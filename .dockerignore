@@ -10,3 +10,5 @@ venv/
 fuel-env/
 staticfiles/
 media/
+.mypy_cache
+.qodo

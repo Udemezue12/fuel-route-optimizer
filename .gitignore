@@ -9,4 +9,6 @@ venv/
 .env
 fuel-env/
 staticfiles/
+.mypy_cache
+.qodo
 # *.sqlite3
