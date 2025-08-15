@@ -1,3 +1,4 @@
+import sys
 import os
 import logging
 from celery import Celery
@@ -6,6 +7,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if BASE_DIR not in sys.path:
+    sys.path.insert(0, BASE_DIR)
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
