@@ -62,8 +62,8 @@ import importlib
 def calculate_route_task(self, *args, **kwargs):
   
     logger.info("📦 Importing heavy CalculateRouteTask...")
-    task_module = importlib.import_module("fuel_route_api.calculate_task_impl")
-    heavy_task = task_module.CalculateRouteTask()
+    from fuel_route_api.tasks import CalculateRouteTask
+    heavy_task =CalculateRouteTask()
     return heavy_task.run(*args, **kwargs)
 
 @shared_task(name="fuel_route_api.tasks.example_task", bind=True)
