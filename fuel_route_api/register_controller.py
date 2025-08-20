@@ -11,6 +11,6 @@ api = NinjaExtraAPI( title="Fuel Route Optimizer API",
     version="1.0.0",
     description="Optimized fuel route calculation with Celery and TomTom")
 
-api.register_controllers(TokenRequest, AuthController, FuelRoutes, RouteController, MapboxController)
+api.register_controllers(TokenRequest, AuthController, FuelRoutes, CalculateRouteController, MapboxController)
 
 
