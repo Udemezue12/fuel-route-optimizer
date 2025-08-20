@@ -2,6 +2,7 @@ from jwt import decode
 from jwt.exceptions import ExpiredSignatureError, DecodeError
 from django.contrib.auth.models import AnonymousUser
 from django.http import HttpRequest as Request
+from django.utils.timezone import now
 from django.contrib.auth import get_user_model
 from django.utils.deprecation import MiddlewareMixin
 from .env import SECRET_KEY, ALGORITHM
