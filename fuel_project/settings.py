@@ -94,7 +94,7 @@ DATABASES = {
         'PASSWORD': os.getenv('SUPABASE_PASSWORD'),
         'HOST': os.getenv('SUPABASE_HOST'),
         'PORT': os.getenv('SUPABASE_PORT'),
-        "CONN_MAX_AGE": 60,
+        "CONN_MAX_AGE": 0,
         'OPTIONS': {
             'sslmode': 'require',
         },
