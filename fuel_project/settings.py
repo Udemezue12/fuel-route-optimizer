@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 import os
+from datetime import timedelta
 import _ssl
 from pathlib import Path
 from dotenv import load_dotenv
@@ -61,6 +62,7 @@ MIDDLEWARE = [
     'fuel_route_api.middleware.JWTAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "fuel_route_api.middleware.AutoLogoutMiddleware",
 ]
 
 ROOT_URLCONF = 'fuel_project.urls'
@@ -92,6 +94,7 @@ DATABASES = {
         'PASSWORD': os.getenv('SUPABASE_PASSWORD'),
         'HOST': os.getenv('SUPABASE_HOST'),
         'PORT': os.getenv('SUPABASE_PORT'),
+        "CONN_MAX_AGE": 60,
         'OPTIONS': {
             'sslmode': 'require',
         },
@@ -160,6 +163,14 @@ CORS_ALLOWED_ORIGINS = [
 SESSION_COOKIE_SECURE = False
 SESSION_COOKIE_HTTPONLY = False
 SESSION_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_AGE = 300        
+SESSION_SAVE_EVERY_REQUEST = True
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),  
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),   
+    "ROTATE_REFRESH_TOKENS": False,
+    "BLACKLIST_AFTER_ROTATION": True,
+}
 LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'UTC'

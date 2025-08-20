@@ -177,3 +177,8 @@ class AvaliableRouteSchema(Schema):
     retail_price : Decimal
     latitude : float
     longitude : float
+class RouteRequest(Schema):
+    start_lat: float
+    start_lon: float
+    finish_lat: float
+    finish_lon: float

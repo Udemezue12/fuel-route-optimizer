@@ -19,3 +19,20 @@ class JWTAuthenticationMiddleware(MiddlewareMixin):
                 request.user = user
             except (ExpiredSignatureError, DecodeError, get_user_model().DoesNotExist):
                 request.user = AnonymousUser()
+class AutoLogoutMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        if request.user.is_authenticated:
+            last_activity = request.session.get("last_activity")
+            current_time = now().timestamp()
+
+            if last_activity and (current_time - last_activity > 300):  # 5 mins
+                from django.contrib.auth import logout
+                logout(request)
+                request.session.flush()  
+            else:
+                request.session["last_activity"] = current_time
+
+        return self.get_response(request)

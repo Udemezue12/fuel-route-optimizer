@@ -17,7 +17,7 @@ class FuelRoutes:
         self.cache_key_deps = cache_key_deps
         self.deps = deps
 
-    @http_get('avaliable/routes', response=CustomPaginatedOutput[AvaliableRouteSchema],  permissions=[permissions.IsAuthenticated])
+    @http_get('avaliable/routes', response=CustomPaginatedOutput[AvaliableRouteSchema], permissions=[permissions.IsAuthenticated])
     @paginate(CustomPagination)
     async def route_list(self):
 

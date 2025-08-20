@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, cast, Any
 from asgiref.sync import sync_to_async
 from injector import inject
 from ninja.errors import HttpError
@@ -13,6 +13,8 @@ from .dependencies import CRUDDependencies, ExistingDependencies
 from .throttling import CustomAnonRateThrottle, CustomUserThrottle
 from .schema import UserIn, UserOut, LoginSchema
 from .tokens import TokenRequest
+
+
 @api_controller('/users', tags=['USERS'])
 @throttle(CustomAnonRateThrottle, CustomUserThrottle)
 class AuthController:
@@ -30,7 +32,7 @@ class AuthController:
         return users
 
     @http_post("/register", response=UserOut)
-    async def register(self, request:Request, data: UserIn):
+    async def register(self, request: Request, data: UserIn):
         await self.csrf_validate.validate_csrf(request)
         deps = self.deps
         check_existing = self.check_existing
@@ -48,9 +50,8 @@ class AuthController:
         await user.asave()
         return UserOut(
             email=user.email,
-            id = user.id,
+            id=user.id,
             username=user.username,
-            password=password,
             first_name=user.first_name,
             last_name=last_name
 
@@ -68,7 +69,7 @@ class AuthController:
         await sync_to_async(django_login)(request, user)
         refresh = RefreshToken.for_user(user)
 
-        access_token = str(refresh.access_token)
+        access_token = str(cast(Any, refresh).access_token)
 
         response = JSONResponse({
             "username": user.username,

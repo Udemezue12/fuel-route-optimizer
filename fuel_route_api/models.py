@@ -20,3 +20,7 @@ class FuelStation(models.Model):
     @property
     def longitude(self):
         return self.location.x if self.location else None
+    class Meta:
+        indexes = [
+            models.Index(fields=["location"], name="fuelstation_location_gist", opclasses=["gist"])
+        ]
