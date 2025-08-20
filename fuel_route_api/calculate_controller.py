@@ -3,9 +3,10 @@ from ninja_extra import api_controller, http_post, throttle
 from fuel_route_api.route_service import GeoapifyService
 from fuel_route_api.fuel_stop_service import FuelStopService
 from fuel_route_api.dependencies import CacheDependencies, CacheKeyDependencies, CRUDDependencies
-from .schema import RouteRequest
+from .schema import RouteRequest, RouteResponse, ErrorResponse, CalculateFuelStop, CalculateRoutePoint, CalculateFuelStopLocation
 from .throttling import CustomAnonRateThrottle, CustomUserThrottle
 from .log import logger
+from .pydantic import fuelstation_to_pydantic
 
 
 
@@ -71,60 +72,63 @@ class CalculateRouteController:
             }
         }
 
-    @http_post("/calculate")
+    @http_post("/calculate", response={200: RouteResponse, 400: ErrorResponse})
     async def calculate_route_data(self, data: RouteRequest):
-      
         try:
-            logger.debug(" Validating coordinates...")
+            logger.debug("Validating coordinates...")
             if not await self.cache_key_deps.validate_usa_coordinates(data.start_lat, data.start_lon):
-                raise ValueError(
-                    "Invalid start coordinates (not within USA bounds).")
+                raise ValueError("Invalid start coordinates (not within USA bounds).")
             if not await self.cache_key_deps.validate_usa_coordinates(data.finish_lat, data.finish_lon):
-                raise ValueError(
-                    "Invalid finish coordinates (not within USA bounds).")
+                raise ValueError("Invalid finish coordinates (not within USA bounds).")
 
-            logger.debug(" Fetching route from Geoapify API...")
+            # --- Check cache first ---
+            cache_key = f"route_result_{data.start_lat}_{data.start_lon}_{data.finish_lat}_{data.finish_lon}"
+            cached_result = await self.cache_deps.get_from_cache(cache_key)
+            if cached_result:
+                logger.debug("Cache hit for route, returning cached result.")
+                return RouteResponse(**cached_result)
+
+            logger.debug("Fetching route from Geoapify API...")
             route_data = await self.geoapify_service.get_geoapify_route(data, mapbox_format=False)
-            logger.debug(
-                f" Route fetched. Summary: {route_data['routes'][0]['summary']}")
-
             route_points = [
-                {"latitude": p["latitude"], "longitude": p["longitude"]}
+                CalculateRoutePoint(latitude=p["latitude"], longitude=p["longitude"])
                 for p in route_data["routes"][0]["points"]
             ]
             total_distance_miles = route_data["routes"][0]["summary"]["lengthInMeters"] / 1609.34
-            logger.debug(
-                f"📏 Total route distance: {total_distance_miles:.2f} miles")
+            logger.debug(f"Total route distance: {total_distance_miles:.2f} miles")
 
-            logger.debug(" Finding optimal fuel stops...")
-            fuel_stops = await self.fuel_service.find_optimal_fuel_stops(route_points)
+            # --- Fuel stops ---
+            fuel_stops_raw = await self.fuel_service.find_optimal_fuel_stops(route_points)
+            fuel_stops = [
+                fuelstation_to_pydantic(fs, distance_from_route_miles=fs.get("distance_from_route_miles", 0.0))
+                for fs in fuel_stops_raw
+            ]
             logger.debug(f"Found {len(fuel_stops)} optimal fuel stops.")
 
-            logger.debug(" Calculating total fuel cost...")
-            total_fuel_cost = await self.fuel_service.calculate_fuel_cost(total_distance_miles, fuel_stops)
-            cost_summary = await self.fuel_service.calculate_fuel_costs(total_distance_miles, fuel_stops)
-            logger.debug(
-                f" Estimated total fuel cost: ${total_fuel_cost:.2f}")
+            
+            total_fuel_cost = await self.fuel_service.calculate_fuel_cost(total_distance_miles, fuel_stops_raw)
+            cost_summary = await self.fuel_service.calculate_fuel_costs(total_distance_miles, fuel_stops_raw)
+            logger.debug(f"Estimated total fuel cost: ${total_fuel_cost:.2f}")
 
-            result = {
-                "route": route_points,
-                "fuel_stops": fuel_stops,
-                "total_fuel_cost": total_fuel_cost,
-                "total_distance_miles": round(total_distance_miles, 2),
-                "number_of_stops": cost_summary["number_of_stops"],
-                "average_price": cost_summary["average_price"],
-                "gallons_needed": cost_summary["gallons_needed"],
-                "success": True
-            }
+           
+            result = RouteResponse(
+                route=route_points,
+                fuel_stops=fuel_stops,
+                total_fuel_cost=total_fuel_cost,
+                total_distance_miles=round(total_distance_miles, 2),
+                number_of_stops=cost_summary["number_of_stops"],
+                average_price=cost_summary["average_price"],
+                gallons_needed=cost_summary["gallons_needed"],
+                success=True
+            )
 
-            logger.debug(" Saving result to cache...")
-            cache_key = f"route_result_{data.start_lat}_{data.start_lon}_{data.finish_lat}_{data.finish_lon}"
-            await self.cache_deps.set_from_cache(cache_key, result, timeout=3600)
+            # --- Cache the result ---
+            logger.debug("Saving result to cache...")
+            await self.cache_deps.set_from_cache(cache_key, result.dict(), timeout=3600)
 
-            logger.info(" Route calculation completed successfully.")
+            logger.info("Route calculation completed successfully.")
             return result
 
         except Exception as e:
-            logger.error(
-                f"Error in calculate_route: {str(e)}", exc_info=True)
-            return {"success": False, "error": str(e)}
+            logger.error(f"Error in calculate_route: {str(e)}", exc_info=True)
+            return ErrorResponse(success=False, error=str(e))

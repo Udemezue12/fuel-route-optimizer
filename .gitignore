@@ -11,4 +11,5 @@ fuel-env/
 staticfiles/
 .mypy_cache
 .qodo
+rough_work.csv
 # *.sqlite3

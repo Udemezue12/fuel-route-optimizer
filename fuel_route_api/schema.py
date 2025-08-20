@@ -182,3 +182,30 @@ class RouteRequest(Schema):
     start_lon: float
     finish_lat: float
     finish_lon: float
+class CalculateRoutePoint(Schema):
+    latitude: float
+    longitude: float
+
+class CalculateFuelStopLocation(Schema):
+    lat: float
+    lon: float
+
+class CalculateFuelStop(Schema):
+    station_id: str
+    name: str
+    retail_price: float
+    distance_from_route_miles: float
+    location: CalculateFuelStopLocation
+
+class RouteResponse(Schema):
+    route: List[CalculateRoutePoint]
+    fuel_stops: List[CalculateFuelStop]
+    total_fuel_cost: float
+    total_distance_miles: float
+    number_of_stops: int
+    average_price: float
+    gallons_needed: float
+    success: bool
+class ErrorResponse(Schema):
+    success: bool
+    error: str
