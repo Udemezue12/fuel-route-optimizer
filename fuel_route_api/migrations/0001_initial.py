@@ -4,27 +4,33 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='FuelStation',
+            name="FuelStation",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('opis_truckstop_id', models.CharField(max_length=100, unique=True)),
-                ('truckstop_name', models.CharField(max_length=255)),
-                ('address', models.CharField(max_length=255)),
-                ('city', models.CharField(max_length=100)),
-                ('state', models.CharField(max_length=2)),
-                ('rack_id', models.CharField(max_length=50)),
-                ('retail_price', models.DecimalField(decimal_places=2, max_digits=5)),
-                ('location', models.FloatField()),
-                ('latitude', models.FloatField()),
-                ('longitude', models.FloatField()),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("opis_truckstop_id", models.CharField(max_length=100, unique=True)),
+                ("truckstop_name", models.CharField(max_length=255)),
+                ("address", models.CharField(max_length=255)),
+                ("city", models.CharField(max_length=100)),
+                ("state", models.CharField(max_length=2)),
+                ("rack_id", models.CharField(max_length=50)),
+                ("retail_price", models.DecimalField(decimal_places=2, max_digits=5)),
+                ("location", models.FloatField()),
+                ("latitude", models.FloatField()),
+                ("longitude", models.FloatField()),
             ],
         ),
     ]

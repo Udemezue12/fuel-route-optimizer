@@ -1,12 +1,13 @@
-
 from __future__ import absolute_import, unicode_literals
+
 import os
 import sys
-import logging
+
 import django
 from celery import Celery
-from kombu.exceptions import OperationalError
 from dotenv import load_dotenv
+from kombu.exceptions import OperationalError
+
 from fuel_route_api.log import logger
 
 load_dotenv()
@@ -17,9 +18,6 @@ if BASE_DIR not in sys.path:
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "fuel_project.settings")
 django.setup()
-
-
-
 
 
 app = Celery(
@@ -54,5 +52,5 @@ logger.debug(" Importing tasks...")
 app.autodiscover_tasks(["fuel_route_api"])
 
 
-if __name__ == "__main__": 
-    app.start() 
+if __name__ == "__main__":
+    app.start()

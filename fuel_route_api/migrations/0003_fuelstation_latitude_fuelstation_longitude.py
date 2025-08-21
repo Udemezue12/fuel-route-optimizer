@@ -4,20 +4,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('fuel_route_api', '0002_remove_fuelstation_latitude_and_more'),
+        ("fuel_route_api", "0002_remove_fuelstation_latitude_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='fuelstation',
-            name='latitude',
+            model_name="fuelstation",
+            name="latitude",
             field=models.FloatField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='fuelstation',
-            name='longitude',
+            model_name="fuelstation",
+            name="longitude",
             field=models.FloatField(blank=True, null=True),
         ),
     ]

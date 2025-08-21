@@ -5,23 +5,24 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('fuel_route_api', '0003_fuelstation_latitude_fuelstation_longitude'),
+        ("fuel_route_api", "0003_fuelstation_latitude_fuelstation_longitude"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='fuelstation',
-            name='latitude',
+            model_name="fuelstation",
+            name="latitude",
         ),
         migrations.RemoveField(
-            model_name='fuelstation',
-            name='longitude',
+            model_name="fuelstation",
+            name="longitude",
         ),
         migrations.AddField(
-            model_name='fuelstation',
-            name='location',
-            field=django.contrib.gis.db.models.fields.PointField(blank=True, geography=True, null=True, srid=4326),
+            model_name="fuelstation",
+            name="location",
+            field=django.contrib.gis.db.models.fields.PointField(
+                blank=True, geography=True, null=True, srid=4326
+            ),
         ),
     ]

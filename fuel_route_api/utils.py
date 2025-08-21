@@ -1,5 +1,6 @@
-from fuel_route_api.schema import FuelStop
 from fuel_route_api.models import FuelStation
+from fuel_route_api.schema import FuelStop
+
 
 def serialize_station(station: FuelStation) -> FuelStop:
     return FuelStop(
@@ -11,5 +12,5 @@ def serialize_station(station: FuelStation) -> FuelStop:
         rack_id=station.rack_id,
         retail_price=float(station.retail_price),
         latitude=station.location.y,
-        longitude=station.location.x
+        longitude=station.location.x,
     )

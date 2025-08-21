@@ -1,7 +1,8 @@
 from decimal import Decimal
+from typing import Annotated, Any, Dict, List, Optional
+
 from ninja import Schema
-from typing import Annotated, Optional, Dict, List, Any
-from pydantic import EmailStr, constr, field_validator, Field
+from pydantic import EmailStr, Field, constr, field_validator
 
 
 class UserIn(Schema):
@@ -11,7 +12,7 @@ class UserIn(Schema):
     password: Annotated[str, constr(min_length=6)]
     email: EmailStr
 
-    @field_validator('first_name', 'last_name')
+    @field_validator("first_name", "last_name")
     @classmethod
     def validate_name(cls, v):
         if not v.replace(" ", "").isalpha():
@@ -31,7 +32,6 @@ class UserOut(Schema):
 
 
 class LoginSchema(Schema):
-
     username: str
     password: str
 
@@ -46,6 +46,8 @@ class CsrfTokenSchema(Schema):
 class LocationInput(Schema):
     latitude: float
     longitude: float
+
+
 class Location(Schema):
     latitude: float
     longitude: float
@@ -69,7 +71,6 @@ class FuelStop(Schema):
 
     class Config:
         from_attributes = True
-
 
 
 class RouteOutput(Schema):
@@ -137,10 +138,11 @@ class MapboxRouteRequestSchema(Schema):
     start_lon: float
     finish_lat: float
     finish_lon: float
+
+
 class MapboxGeometry(Schema):
     coordinates: List[List[float]] = Field(
-        ..., 
-        example=[[-74.00597, 40.71427], [-73.935242, 40.73061]]
+        ..., example=[[-74.00597, 40.71427], [-73.935242, 40.73061]]
     )
     type: str = Field("LineString", example="LineString")
 
@@ -156,7 +158,6 @@ class MapboxRouteResponseSchema(Schema):
     routes: List[MapboxRoute]
 
 
-
 class MapboxGeocodeRequestSchema(Schema):
     address: str
     city: str
@@ -167,28 +168,35 @@ class MapboxGeocodeResponseSchema(Schema):
     lat: float
     lon: float
 
+
 class AvaliableRouteSchema(Schema):
-    opis_truckstop_id : int
-    truckstop_name :str
-    address :str
-    city :str
-    state :str
-    rack_id : int
-    retail_price : Decimal
-    latitude : float
-    longitude : float
+    opis_truckstop_id: int
+    truckstop_name: str
+    address: str
+    city: str
+    state: str
+    rack_id: int
+    retail_price: Decimal
+    latitude: float
+    longitude: float
+
+
 class RouteRequest(Schema):
     start_lat: float
     start_lon: float
     finish_lat: float
     finish_lon: float
+
+
 class CalculateRoutePoint(Schema):
     latitude: float
     longitude: float
 
+
 class CalculateFuelStopLocation(Schema):
     lat: float
     lon: float
+
 
 class CalculateFuelStop(Schema):
     station_id: str
@@ -196,6 +204,7 @@ class CalculateFuelStop(Schema):
     retail_price: float
     distance_from_route_miles: float
     location: CalculateFuelStopLocation
+
 
 class RouteResponse(Schema):
     route: List[CalculateRoutePoint]
@@ -206,6 +215,7 @@ class RouteResponse(Schema):
     average_price: float | None = None
     gallons_needed: float | None = None
     success: bool
+
 
 class ErrorResponse(Schema):
     success: bool

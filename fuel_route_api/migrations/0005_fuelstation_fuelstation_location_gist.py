@@ -4,14 +4,17 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('fuel_route_api', '0004_remove_fuelstation_latitude_and_more'),
+        ("fuel_route_api", "0004_remove_fuelstation_latitude_and_more"),
     ]
 
     operations = [
         migrations.AddIndex(
-            model_name='fuelstation',
-            index=models.Index(fields=['location'], name='fuelstation_location_gist', opclasses=['gist']),
+            model_name="fuelstation",
+            index=models.Index(
+                fields=["location"],
+                name="fuelstation_location_gist",
+                opclasses=["gist"],
+            ),
         ),
     ]

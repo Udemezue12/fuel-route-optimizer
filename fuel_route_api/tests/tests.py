@@ -1,10 +1,12 @@
+from unittest.mock import AsyncMock, patch
 
 import pytest
 from ninja.testing import TestAsyncClient
+
 from fuel_route_api.models import FuelStation
-from unittest.mock import AsyncMock, patch
 from fuel_route_api.register_controller import api
 from fuel_route_api.tasks import calculate_route_task
+
 
 @pytest.mark.django_db
 @pytest.mark.asyncio
@@ -28,44 +30,61 @@ class TestRouteAPI:
         )
 
     async def test_trigger_route_calculation(self, client):
-        response = await client.post("/route/calculate", json={
-            "start": {"latitude": 36.5381, "longitude": -95.2214},
-            "finish": {"latitude": 44.0247, "longitude": -91.6393}
-        })
+        response = await client.post(
+            "/route/calculate",
+            json={
+                "start": {"latitude": 36.5381, "longitude": -95.2214},
+                "finish": {"latitude": 44.0247, "longitude": -91.6393},
+            },
+        )
         assert response.status_code == 200
         data = response.json()
         assert "task_id" in data
         assert data["status"] in ["PENDING", "STARTED"]
 
     async def test_invalid_coordinates(self, client):
-        response = await client.post("/route/calculate", json={
-            "start": {"latitude": 0, "longitude": 0},
-            "finish": {"latitude": 44.0247, "longitude": -91.6393}
-        })
+        response = await client.post(
+            "/route/calculate",
+            json={
+                "start": {"latitude": 0, "longitude": 0},
+                "finish": {"latitude": 44.0247, "longitude": -91.6393},
+            },
+        )
         assert response.status_code == 400
         assert "Locations must be within the USA" in response.json().get("detail", "")
 
     async def test_get_task_result_success(self, client, fuel_station):
         tomtom_response = {
-            "routes": [{
-                "summary": {"lengthInMeters": 1609340},
-                "legs": [{"points": [
-                    {"latitude": 36.5381, "longitude": -95.2214},
-                    {"latitude": 44.0247, "longitude": -91.6393}
-                ]}]
-            }]
+            "routes": [
+                {
+                    "summary": {"lengthInMeters": 1609340},
+                    "legs": [
+                        {
+                            "points": [
+                                {"latitude": 36.5381, "longitude": -95.2214},
+                                {"latitude": 44.0247, "longitude": -91.6393},
+                            ]
+                        }
+                    ],
+                }
+            ]
         }
-        with patch('aiohttp.ClientSession.get', new=AsyncMock()) as mock_get:
+        with patch("aiohttp.ClientSession.get", new=AsyncMock()) as mock_get:
             mock_get.return_value.__aenter__.return_value.status = 200
-            mock_get.return_value.__aenter__.return_value.json = AsyncMock(return_value=tomtom_response)
+            mock_get.return_value.__aenter__.return_value.json = AsyncMock(
+                return_value=tomtom_response
+            )
 
-            response = await client.post("/route/calculate", json={
-                "start": {"latitude": 36.5381, "longitude": -95.2214},
-                "finish": {"latitude": 44.0247, "longitude": -91.6393}
-            })
+            response = await client.post(
+                "/route/calculate",
+                json={
+                    "start": {"latitude": 36.5381, "longitude": -95.2214},
+                    "finish": {"latitude": 44.0247, "longitude": -91.6393},
+                },
+            )
             task_id = response.json()["task_id"]
 
-            task_result = calculate_route_task.apply(
+            calculate_route_task.apply(
                 args=[36.5381, -95.2214, 44.0247, -91.6393]
             ).get()
 
@@ -81,22 +100,33 @@ class TestRouteAPI:
 
     async def test_task_result_caching(self, client, fuel_station):
         tomtom_response = {
-            "routes": [{
-                "summary": {"lengthInMeters": 482803},
-                "legs": [{"points": [
-                    {"latitude": 36.5381, "longitude": -95.2214},
-                    {"latitude": 44.0247, "longitude": -91.6393}
-                ]}]
-            }]
+            "routes": [
+                {
+                    "summary": {"lengthInMeters": 482803},
+                    "legs": [
+                        {
+                            "points": [
+                                {"latitude": 36.5381, "longitude": -95.2214},
+                                {"latitude": 44.0247, "longitude": -91.6393},
+                            ]
+                        }
+                    ],
+                }
+            ]
         }
-        with patch('aiohttp.ClientSession.get', new=AsyncMock()) as mock_get:
+        with patch("aiohttp.ClientSession.get", new=AsyncMock()) as mock_get:
             mock_get.return_value.__aenter__.return_value.status = 200
-            mock_get.return_value.__aenter__.return_value.json = AsyncMock(return_value=tomtom_response)
+            mock_get.return_value.__aenter__.return_value.json = AsyncMock(
+                return_value=tomtom_response
+            )
 
-            response1 = await client.post("/route/calculate", json={
-                "start": {"latitude": 36.5381, "longitude": -95.2214},
-                "finish": {"latitude": 44.0247, "longitude": -91.6393}
-            })
+            response1 = await client.post(
+                "/route/calculate",
+                json={
+                    "start": {"latitude": 36.5381, "longitude": -95.2214},
+                    "finish": {"latitude": 44.0247, "longitude": -91.6393},
+                },
+            )
             task_id = response1.json()["task_id"]
 
             calculate_route_task.apply(
@@ -112,10 +142,13 @@ class TestRouteAPI:
 
     async def test_throttling(self, client):
         for _ in range(101):
-            response = await client.post("/route/calculate", json={
-                "start": {"latitude": 36.5381, "longitude": -95.2214},
-                "finish": {"latitude": 44.0247, "longitude": -91.6393}
-            })
+            response = await client.post(
+                "/route/calculate",
+                json={
+                    "start": {"latitude": 36.5381, "longitude": -95.2214},
+                    "finish": {"latitude": 44.0247, "longitude": -91.6393},
+                },
+            )
             if response.status_code == 429:
                 assert "Request limit exceeded" in response.json().get("detail", "")
                 break
@@ -123,14 +156,19 @@ class TestRouteAPI:
             pytest.fail("Throttling did not trigger")
 
     async def test_task_failure(self, client):
-        with patch('aiohttp.ClientSession.get', new=AsyncMock()) as mock_get:
+        with patch("aiohttp.ClientSession.get", new=AsyncMock()) as mock_get:
             mock_get.return_value.__aenter__.return_value.status = 500
-            mock_get.return_value.__aenter__.return_value.json = AsyncMock(return_value={})
+            mock_get.return_value.__aenter__.return_value.json = AsyncMock(
+                return_value={}
+            )
 
-            response = await client.post("/route/calculate", json={
-                "start": {"latitude": 36.5381, "longitude": -95.2214},
-                "finish": {"latitude": 44.0247, "longitude": -91.6393}
-            })
+            response = await client.post(
+                "/route/calculate",
+                json={
+                    "start": {"latitude": 36.5381, "longitude": -95.2214},
+                    "finish": {"latitude": 44.0247, "longitude": -91.6393},
+                },
+            )
             task_id = response.json()["task_id"]
 
             with pytest.raises(Exception):

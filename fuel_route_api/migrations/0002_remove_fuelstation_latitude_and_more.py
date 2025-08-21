@@ -4,27 +4,26 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('fuel_route_api', '0001_initial'),
+        ("fuel_route_api", "0001_initial"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='fuelstation',
-            name='latitude',
+            model_name="fuelstation",
+            name="latitude",
         ),
         migrations.RemoveField(
-            model_name='fuelstation',
-            name='location',
+            model_name="fuelstation",
+            name="location",
         ),
         migrations.RemoveField(
-            model_name='fuelstation',
-            name='longitude',
+            model_name="fuelstation",
+            name="longitude",
         ),
         migrations.AlterField(
-            model_name='fuelstation',
-            name='retail_price',
+            model_name="fuelstation",
+            name="retail_price",
             field=models.DecimalField(decimal_places=3, max_digits=5),
         ),
     ]
