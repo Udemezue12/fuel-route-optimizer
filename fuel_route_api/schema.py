@@ -203,9 +203,10 @@ class RouteResponse(Schema):
     total_fuel_cost: float
     total_distance_miles: float
     number_of_stops: int
-    average_price: float
-    gallons_needed: float
+    average_price: float | None = None
+    gallons_needed: float | None = None
     success: bool
+
 class ErrorResponse(Schema):
     success: bool
     error: str

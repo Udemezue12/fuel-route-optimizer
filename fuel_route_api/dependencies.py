@@ -74,7 +74,7 @@ class CacheDependencies:
 class CacheKeyDependencies:
     async def generate_cache_key(self, data: dict) -> str:
         return md5(json.dumps(data, sort_keys=True).encode('utf-8')).hexdigest()
-
+        
     async def validate_usa_coordinates(self, latitude: float, longitude: float) -> bool:
         usa_bounds = {
             'lat_min': 24.396308,
@@ -86,3 +86,11 @@ class CacheKeyDependencies:
             usa_bounds['lat_min'] <= latitude <= usa_bounds['lat_max'] and
             usa_bounds['lon_min'] <= longitude <= usa_bounds['lon_max']
         )
+    async def _generate_cache_key(self, start_lat, start_lon, finish_lat, finish_lon, route_points=None):
+       
+        base_key = f"route_{start_lat}_{start_lon}_{finish_lat}_{finish_lon}"
+        if route_points:
+            coords = [(p.latitude, p.longitude) for p in route_points]
+            hash_part = md5(json.dumps(coords, sort_keys=True).encode("utf-8")).hexdigest()
+            return f"{base_key}_{hash_part}"
+        return base_key
