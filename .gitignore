@@ -12,4 +12,5 @@ staticfiles/
 .mypy_cache
 .qodo
 rough_work.csv
+.ruff_cache
 # *.sqlite3

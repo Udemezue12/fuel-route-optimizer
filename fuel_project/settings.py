@@ -30,8 +30,10 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 
 
 DEBUG = True
-ALLOWED_HOSTS = ["https://fuel-route-optimizer.onrender.com",
-                 "fuel-route-optimizer.onrender.com"]
+ALLOWED_HOSTS = [
+    "https://fuel-route-optimizer.onrender.com",
+    "fuel-route-optimizer.onrender.com",
+]
 
 
 INSTALLED_APPS = [

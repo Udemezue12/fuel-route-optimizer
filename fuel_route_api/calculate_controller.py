@@ -13,7 +13,7 @@ from .schema import RouteRequest
 from .throttling import CustomAnonRateThrottle, CustomUserThrottle
 
 
-@api_controller("/routes", tags=["Calculate Routes"])
+@api_controller("/routes", tags=["Calculate Geo Routes"])
 @throttle(CustomAnonRateThrottle, CustomUserThrottle)
 class CalculateRouteController:
     def __init__(self):

@@ -1,9 +1,9 @@
 from ninja_extra import NinjaExtraAPI
 
 from .auth import AuthController
-from .calculate_controller import CalculateRouteController
 from .fuel_routes_list import FuelRoutes
 from .mapbox_controller import MapboxController
+from .route_controller import RouteController
 from .tokens import TokenRequest
 
 api = NinjaExtraAPI(
@@ -13,5 +13,5 @@ api = NinjaExtraAPI(
 )
 
 api.register_controllers(
-    TokenRequest, AuthController, FuelRoutes, CalculateRouteController, MapboxController
+    TokenRequest, AuthController, FuelRoutes, RouteController, MapboxController
 )
