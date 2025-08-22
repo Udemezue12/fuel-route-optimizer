@@ -9,7 +9,7 @@ from .tokens import TokenRequest
 api = NinjaExtraAPI(
     title="Fuel Route Optimizer API",
     version="1.0.0",
-    description="Optimized fuel route calculation with Celery and TomTom",
+    description="Optimized fuel route calculation",
 )
 
 api.register_controllers(
