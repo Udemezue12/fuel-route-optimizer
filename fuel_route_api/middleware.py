@@ -7,6 +7,7 @@ from jwt import decode
 from jwt.exceptions import DecodeError, ExpiredSignatureError
 
 from .env import ALGORITHM, SECRET_KEY
+from .dependencies import CacheDependencies
 
 
 class JWTAuthenticationMiddleware(MiddlewareMixin):
@@ -30,7 +31,7 @@ class AutoLogoutMiddleware:
             last_activity = request.session.get("last_activity")
             current_time = now().timestamp()
 
-            if last_activity and (current_time - last_activity > 300):  # 5 mins
+            if last_activity and (current_time - last_activity > 600):  # 5 mins
                 from django.contrib.auth import logout
 
                 logout(request)
@@ -39,3 +40,14 @@ class AutoLogoutMiddleware:
                 request.session["last_activity"] = current_time
 
         return self.get_response(request)
+
+# class ActivityMiddleware:
+#     def __init__(self, get_response):
+#         self.get_response = get_response
+
+#     def __call__(self, request):
+#         cache = CacheDependencies()
+#         if request.user.is_authenticated:
+#             from django.utils.timezone import now
+#             cache.set_from_cache(f"user:{request.user.id}:last_seen", now().timestamp(), timeout=86400)
+#         return self.get_response(request)

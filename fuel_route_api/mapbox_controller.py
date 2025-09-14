@@ -28,7 +28,7 @@ class MapboxController(ControllerBase):
         )
 
     @http_post(
-        "/route", response=MapboxRouteResponseSchema, permissions=[IsAuthenticated]
+        "/get/route", response=MapboxRouteResponseSchema, permissions=[IsAuthenticated]
     )
     async def get_route(self, request, data: MapboxRouteRequestSchema):
         try:
@@ -40,7 +40,7 @@ class MapboxController(ControllerBase):
             raise HttpError(500, f"Error getting route: {str(e)}")
 
     @http_get(
-        "/geocode", response=MapboxGeocodeResponseSchema, permissions=[IsAuthenticated]
+        "/get/geocode", response=MapboxGeocodeResponseSchema, permissions=[IsAuthenticated]
     )
     async def geocode(self, request, address: str, city: str, state: str):
         try:

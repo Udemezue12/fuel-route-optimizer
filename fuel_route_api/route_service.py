@@ -1,4 +1,5 @@
 import logging
+import urllib.parse
 from typing import Dict
 
 import aiohttp
@@ -19,6 +20,11 @@ from .schema import (
     GeocodeInputSchema,
     GeocodeOutputSchema,
     RouteRequestSchema,
+)
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"
 )
 
 
@@ -182,28 +188,26 @@ class TomTomService:
 
     async def geocode_address(self, data: GeocodeInputSchema) -> GeocodeOutputSchema:
         async with aiohttp.ClientSession() as session:
-            query = f"{data.address}, {data.city}, {data.state}, USA"
+            address = data.address.strip('" ').strip()
+            city = data.city.strip('" ').strip()
+            state = data.state.strip('" ').strip()
+            raw_query = f"{address}, {city}, {state}, USA"
+            query = urllib.parse.quote(raw_query)
             url = f"{TOMTOM_BASE_URL}/search/2/geocode/{query}.json"
             params = {"key": TOMTOM_API_KEY}
-
+# "I-81, EXIT 273 & SR-703/SR-292""Mount Jackson""VA"
             async with session.get(url, params=params) as response:
                 geocode_data = await response.json()
                 if response.status != 200:
-                    print(f"❌ Geocoding failed: {response.status} - {geocode_data}")
+                    print(f" Geocoding failed: {response.status} - {geocode_data}")
                     raise HttpError(502, f"Failed to geocode address: {query}")
 
                 if not geocode_data.get("results"):
-                    print(f"📭 No geocoding results for: {query}")
+                    print(f" No geocoding results for: {query}")
                     raise HttpError(404, "No results found for this address")
 
                 position = geocode_data["results"][0]["position"]
                 return GeocodeOutputSchema(lat=position["lat"], lon=position["lon"])
-
-
-logger = logging.getLogger(__name__)
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"
-)
 
 
 class GeoapifyService:
@@ -217,7 +221,7 @@ class GeoapifyService:
         self, data: CoordinateSchema, mapbox_format: bool = False
     ) -> Dict:
         logger.info(
-            f"📍 Validating coordinates: start=({data.start_lat}, {data.start_lon}), finish=({data.finish_lat}, {data.finish_lon})"
+            f" Validating coordinates: start=({data.start_lat}, {data.start_lon}), finish=({data.finish_lat}, {data.finish_lon})"
         )
 
         if not await self.cache_key_deps.validate_usa_coordinates(

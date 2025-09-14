@@ -1,9 +1,14 @@
 from typing import Any, List, cast
 
 from asgiref.sync import sync_to_async
-from django.contrib.auth import authenticate, login as django_login, logout as django_logout
+from django.contrib.auth import (
+    authenticate,
+    login as django_login,
+    logout as django_logout,
+)
 from django.contrib.auth.models import User
 from django.http import HttpRequest as Request
+from django.utils.timezone import now
 from injector import inject
 from ninja.errors import HttpError
 from ninja.responses import Response as JSONResponse
@@ -12,8 +17,8 @@ from ninja_extra.permissions import IsAdminUser
 from ninja_jwt.tokens import RefreshToken
 
 from .blacklist_token import blacklist_refresh_token
+from .dependencies import CacheDependencies, CRUDDependencies, ExistingDependencies
 from .helper import run_sync
-from .dependencies import CRUDDependencies, ExistingDependencies
 from .schema import LoginSchema, UserIn, UserOut
 from .throttling import CustomAnonRateThrottle, CustomUserThrottle
 from .tokens import TokenRequest
@@ -26,12 +31,14 @@ class AuthController:
     def __init__(
         self,
         deps: CRUDDependencies,
+        cache: CacheDependencies,
         check_existing: ExistingDependencies,
         csrf_validate: TokenRequest,
     ):
         self.deps = deps
         self.check_existing = check_existing
         self.csrf_validate = csrf_validate
+        self.cache = cache
 
     @http_get("", response=List[UserOut], permissions=[IsAdminUser])
     async def users(self):
@@ -94,7 +101,9 @@ class AuthController:
         username = data.username
         password = data.password
 
-        user = await run_sync(authenticate, request, username=username, password=password)
+        user = await run_sync(
+            authenticate, request, username=username, password=password
+        )
 
         if not user:
             raise HttpError(status_code=401, message="Invalid credentials")
@@ -109,6 +118,7 @@ class AuthController:
                 "email": user.email,
                 "user_id": user.id,
                 "access_token": access_token,
+                # "refresh_token": refresh,
                 "message": "Login successful",
             }
         )
@@ -118,7 +128,7 @@ class AuthController:
             httponly=True,
             secure=False,
             samesite="Lax",
-            max_age=300,
+            max_age=600,
         )
         response.set_cookie(
             key="refresh_token",
@@ -131,50 +141,55 @@ class AuthController:
 
         return response
 
-    # @http_post("/refresh")
-    # async def refresh_token(self, request: Request):
-    #     refresh_token = request.COOKIES.get("refresh_token")
-    #     if not refresh_token:
-    #         raise HttpError(status_code=401, message="Refresh token not provided")
+    @http_post("/refresh")
+    async def refresh_token(self, request: Request):
+        refresh_token = request.COOKIES.get("refresh_token")
+        if not refresh_token:
+            raise HttpError(status_code=401, message="Refresh token not provided")
 
-    #     try:
-    #         refresh = RefreshToken(refresh_token)
-    #         new_access_token = await sync_to_async(lambda: str(refresh.access_token))()
-    #         response = JSONResponse(
-    #             {
-    #                 "access_token": new_access_token,
-    #                 "message": "Token refreshed successfully",
-    #             }
-    #         )
-    #         response.set_cookie(
-    #             key="access_token",
-    #             value=new_access_token,
-    #             httponly=True,
-    #             secure=False,
-    #             samesite="Lax",
-    #             max_age=300,
-    #         )
-    #         return response
-    #     except Exception:
-    #         raise HttpError(status_code=401, message="Invalid refresh token")
+        try:
+            refresh = RefreshToken(refresh_token)
+            user_id = refresh["user_id"]
+            last_seen = self.cache.get_from_cache(f"user:{user_id}:last_seen")
+            if last_seen and (now().timestamp() - last_seen > 1800):  
+
+                raise HttpError(status_code=401, message="Session expired due to inactivity")
+            new_access_token = await sync_to_async(lambda: str(refresh.access_token))()
+            response = JSONResponse(
+                {
+                    "access_token": new_access_token,
+                    "message": "Token refreshed successfully",
+                }
+            )
+            response.set_cookie(
+                key="access_token",
+                value=new_access_token,
+                httponly=True,
+                secure=False,
+                samesite="Lax",
+                max_age=300,
+            )
+            return response
+        except Exception:
+            raise HttpError(status_code=401, message="Invalid refresh token")
 
     @http_post("/logout")
     async def logout(self, request: Request):
-        
-        await run_sync(django_logout, request)  
+        await run_sync(django_logout, request)
         refresh_token = request.COOKIES.get("refresh_token")
-        success = False
+       
         if refresh_token:
-            success = await blacklist_refresh_token(refresh_token)
-        if success:
-            res = JSONResponse({"detail": "Logout successful"}, status=200)
-        else:
-            res = JSONResponse({"detail": "Invalid or expired token"}, status=400)
+            try:
+               await blacklist_refresh_token(refresh_token)
+            except Exception:
+                pass
+        res = JSONResponse({"detail": "Logout successful"}, status=200)
 
         for cookie in [
             "sessionid",
             "session",
             "csrf_token",
+            "csrftoken",
             "access_token",
             "refresh_token",
         ]:
