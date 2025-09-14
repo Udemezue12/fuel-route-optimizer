@@ -9,9 +9,9 @@ from ninja.errors import HttpError
 from ninja.responses import Response as JSONResponse
 from ninja_extra import api_controller, http_get, http_post, throttle
 from ninja_extra.permissions import IsAdminUser
-from ninja_jwt.token_blacklist.models import BlacklistedToken, OutstandingToken
 from ninja_jwt.tokens import RefreshToken
 
+from .blacklist_token import blacklist_refresh_token
 from .dependencies import CRUDDependencies, ExistingDependencies
 from .schema import LoginSchema, UserIn, UserOut
 from .throttling import CustomAnonRateThrottle, CustomUserThrottle
@@ -99,7 +99,7 @@ class AuthController:
         if not user:
             raise HttpError(status_code=401, message="Invalid credentials")
         await sync_to_async(django_login)(request, user)
-        refresh = RefreshToken.for_user(user)
+        refresh = await sync_to_async(RefreshToken.for_user)(user)
 
         access_token = str(cast(Any, refresh).access_token)
 
@@ -139,7 +139,7 @@ class AuthController:
 
     #     try:
     #         refresh = RefreshToken(refresh_token)
-    #         new_access_token = str(cast(Any, refresh).access_token)
+    #         new_access_token = await sync_to_async(lambda: str(refresh.access_token))()
     #         response = JSONResponse(
     #             {
     #                 "access_token": new_access_token,
@@ -161,18 +161,14 @@ class AuthController:
     @http_post("/logout")
     async def logout(self, request: Request):
         request.session.clear()
-        res = JSONResponse({"message": "Logged out"})
         refresh_token = request.COOKIES.get("refresh_token")
-        if refresh_token:
-            try:
-                token = RefreshToken(refresh_token)
-                token.blacklist()
-                OutstandingToken.objects.filter(jti=token["jti"]).delete()
-                BlacklistedToken.objects.filter(token__jti=token["jti"]).delete()
-
-                res = JSONResponse({"detail": "Logout successful"}, status=205)
-            except Exception:
-                res = JSONResponse({"detail": "Invalid or expired token"}, status=400)
+        success = False
+        if refresh_token :
+            success = await blacklist_refresh_token(refresh_token)
+        if success:
+            res = JSONResponse({"detail": "Logout successful"}, status=200)
+        else:
+            res = JSONResponse({"detail": "Invalid or expired token"}, status=400)
 
         for cookie in [
             "sessionid",
