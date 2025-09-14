@@ -9,6 +9,7 @@ from ninja.errors import HttpError
 from ninja.responses import Response as JSONResponse
 from ninja_extra import api_controller, http_get, http_post, throttle
 from ninja_extra.permissions import IsAdminUser
+from ninja_jwt.token_blacklist.models import BlacklistedToken, OutstandingToken
 from ninja_jwt.tokens import RefreshToken
 
 from .dependencies import CRUDDependencies, ExistingDependencies
@@ -117,17 +118,69 @@ class AuthController:
             httponly=True,
             secure=False,
             samesite="Lax",
+            max_age=300,
+        )
+        response.set_cookie(
+            key="refresh_token",
+            value=str(refresh),
+            httponly=True,
+            secure=False,
+            samesite="Lax",
             max_age=86400,
         )
 
         return response
 
+    # @http_post("/refresh")
+    # async def refresh_token(self, request: Request):
+    #     refresh_token = request.COOKIES.get("refresh_token")
+    #     if not refresh_token:
+    #         raise HttpError(status_code=401, message="Refresh token not provided")
+
+    #     try:
+    #         refresh = RefreshToken(refresh_token)
+    #         new_access_token = str(cast(Any, refresh).access_token)
+    #         response = JSONResponse(
+    #             {
+    #                 "access_token": new_access_token,
+    #                 "message": "Token refreshed successfully",
+    #             }
+    #         )
+    #         response.set_cookie(
+    #             key="access_token",
+    #             value=new_access_token,
+    #             httponly=True,
+    #             secure=False,
+    #             samesite="Lax",
+    #             max_age=300,
+    #         )
+    #         return response
+    #     except Exception:
+    #         raise HttpError(status_code=401, message="Invalid refresh token")
+
     @http_post("/logout")
     async def logout(self, request: Request):
         request.session.clear()
         res = JSONResponse({"message": "Logged out"})
+        refresh_token = request.COOKIES.get("refresh_token")
+        if refresh_token:
+            try:
+                token = RefreshToken(refresh_token)
+                token.blacklist()
+                OutstandingToken.objects.filter(jti=token["jti"]).delete()
+                BlacklistedToken.objects.filter(token__jti=token["jti"]).delete()
 
-        for cookie in ["sessionid", "session", "csrf_token", "access_token"]:
+                res = JSONResponse({"detail": "Logout successful"}, status=205)
+            except Exception:
+                res = JSONResponse({"detail": "Invalid or expired token"}, status=400)
+
+        for cookie in [
+            "sessionid",
+            "session",
+            "csrf_token",
+            "access_token",
+            "refresh_token",
+        ]:
             res.delete_cookie(key=cookie, path="/")
 
         return res

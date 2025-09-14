@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     "django.contrib.gis",
     "ninja",
     "ninja_extra",
+    "ninja_jwt.token_blacklist",
     "itsdangerous",
     "fuel_route_api",
     "starlette",
