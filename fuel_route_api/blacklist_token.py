@@ -1,7 +1,7 @@
 from ninja_jwt.token_blacklist.models import BlacklistedToken, OutstandingToken
 from ninja_jwt.tokens import RefreshToken
 
-from .helper_db import run_db
+from .helper import run_db
 
 
 async def blacklist_refresh_token(refresh_token: str) -> bool:

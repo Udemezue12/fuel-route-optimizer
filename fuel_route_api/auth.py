@@ -1,7 +1,7 @@
 from typing import Any, List, cast
 
 from asgiref.sync import sync_to_async
-from django.contrib.auth import authenticate, login as django_login
+from django.contrib.auth import authenticate, login as django_login, logout as django_logout
 from django.contrib.auth.models import User
 from django.http import HttpRequest as Request
 from injector import inject
@@ -12,6 +12,7 @@ from ninja_extra.permissions import IsAdminUser
 from ninja_jwt.tokens import RefreshToken
 
 from .blacklist_token import blacklist_refresh_token
+from .helper import run_sync
 from .dependencies import CRUDDependencies, ExistingDependencies
 from .schema import LoginSchema, UserIn, UserOut
 from .throttling import CustomAnonRateThrottle, CustomUserThrottle
@@ -93,12 +94,11 @@ class AuthController:
         username = data.username
         password = data.password
 
-        user = await sync_to_async(authenticate)(
-            request, username=username, password=password
-        )
+        user = await run_sync(authenticate, request, username=username, password=password)
+
         if not user:
             raise HttpError(status_code=401, message="Invalid credentials")
-        await sync_to_async(django_login)(request, user)
+        await run_sync(django_login, request, user)
         refresh = await sync_to_async(RefreshToken.for_user)(user)
 
         access_token = str(cast(Any, refresh).access_token)
@@ -160,10 +160,11 @@ class AuthController:
 
     @http_post("/logout")
     async def logout(self, request: Request):
-        request.session.clear()
+        
+        await run_sync(django_logout, request)  
         refresh_token = request.COOKIES.get("refresh_token")
         success = False
-        if refresh_token :
+        if refresh_token:
             success = await blacklist_refresh_token(refresh_token)
         if success:
             res = JSONResponse({"detail": "Logout successful"}, status=200)
