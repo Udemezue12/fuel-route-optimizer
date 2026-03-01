@@ -13,9 +13,9 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 import os
 from datetime import timedelta
 from pathlib import Path
-
+import dj_database_url
 from dotenv import load_dotenv
-
+from fuel_route_api.core.env import ALLOWED_ORIGINS, CORS_ALLOWED_HOSTS, CSRF_TRUSTED_HOSTS
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -30,10 +30,8 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 
 
 DEBUG = True
-ALLOWED_HOSTS = [
-    "https://fuel-route-optimizer.onrender.com",
-    "fuel-route-optimizer.onrender.com",
-]
+
+ALLOWED_HOSTS = ALLOWED_ORIGINS
 
 
 INSTALLED_APPS = [
@@ -90,22 +88,19 @@ TEMPLATES = [
 WSGI_APPLICATION = "fuel_project.wsgi.application"
 
 
+
+
+
 DATABASES = {
-    "default": {
-        "ENGINE": "django.contrib.gis.db.backends.postgis",
-        "NAME": os.getenv("SUPABASE_NAME"),
-        "USER": os.getenv("SUPABASE_USER"),
-        "PASSWORD": os.getenv("SUPABASE_PASSWORD"),
-        "HOST": os.getenv("SUPABASE_HOST"),
-        "PORT": os.getenv("SUPABASE_PORT"),
-        "CONN_MAX_AGE": 0,
-        "OPTIONS": {
-            "sslmode": "require",
-        },
-    }
+    "default": dj_database_url.parse(
+        os.getenv("DATABASE_URL", ""),
+        conn_max_age=600,
+        ssl_require=True,
+    )
 }
 
 
+DATABASES["default"]["ENGINE"] = "django.contrib.gis.db.backends.postgis"
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
@@ -137,31 +132,24 @@ NINJA_EXTRA = {
     },
     "INJECTOR_MODULES": [],
 }
+
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": os.getenv("CACHE_LOCATION"),
+        "LOCATION": os.getenv("CACHE_URL"),
         "OPTIONS": {
-            "PASSWORD": os.getenv("CACHE_PASSWORD"),
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            "CONNECTION_POOL_KWARGS": {"max_connections": 10},
+            "CONNECTION_POOL_KWARGS": {
+                "max_connections": 10,
+            },
         },
     }
 }
 
-
-CSRF_TRUSTED_ORIGINS = [
-    "https://fuel-route-optimizer.onrender.com",
-]
+CSRF_TRUSTED_ORIGINS = CSRF_TRUSTED_HOSTS
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "https://fuel-route-optimizer.onrender.com",
-]
-# Internationalization
-# https://docs.djangoproject.com/en/5.2/topics/i18n/
-# for production
+CORS_ALLOWED_ORIGINS = CORS_ALLOWED_HOSTS
+
 SESSION_COOKIE_SECURE = True
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = 'Lax'
@@ -185,7 +173,7 @@ USE_I18N = True
 
 USE_TZ = True
 
-
+AUTH_USER_MODEL = "fuel_route_api.CustomUser"
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
@@ -216,11 +204,11 @@ CELERY_REDIS_MAX_CONNECTIONS = 10
 CELERY_WORKER_CONCURRENCY = 1
 
 # USE ONLY IN DEVELOPMENT FOR WINDOWS
-# GDAL_LIBRARY_PATH = r"C:/OSGeo4W/bin/gdal311.dll"
-# if os.name == "nt":
-#     OSGEO4W = r"C:/OSGeo4W"
-#     assert os.path.isdir(OSGEO4W), "OSGeo4W directory not found" + OSGEO4W
-#     os.environ["OSGEO4W_ROOT"] = OSGEO4W
-#     os.environ["GDAL_DATA"] = OSGEO4W + r"\share\gdal"
-#     os.environ["PROJ_LIB"] = OSGEO4W + r"\share\proj"
-#     os.environ["PATH"] = OSGEO4W + r"\bin;" + os.environ["PATH"]
+GDAL_LIBRARY_PATH = r"C:/OSGeo4W/bin/gdal311.dll"
+if os.name == "nt":
+    OSGEO4W = r"C:/OSGeo4W"
+    assert os.path.isdir(OSGEO4W), "OSGeo4W directory not found" + OSGEO4W
+    os.environ["OSGEO4W_ROOT"] = OSGEO4W
+    os.environ["GDAL_DATA"] = OSGEO4W + r"\share\gdal"
+    os.environ["PROJ_LIB"] = OSGEO4W + r"\share\proj"
+    os.environ["PATH"] = OSGEO4W + r"\bin;" + os.environ["PATH"]

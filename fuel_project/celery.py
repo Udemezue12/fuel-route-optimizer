@@ -6,9 +6,7 @@ import sys
 import django
 from celery import Celery
 from dotenv import load_dotenv
-from kombu.exceptions import OperationalError
 
-from fuel_route_api.log import logger
 
 load_dotenv()
 
@@ -39,17 +37,9 @@ app.conf.update(
 )
 
 
-try:
-    logger.debug(" Testing Redis broker connection...")
-    conn = app.connection()
-    conn.ensure_connection(max_retries=3)
-    logger.debug("Redis broker connection successful.")
-except OperationalError as e:
-    logger.error(f" Failed to connect to broker: {e}")
-    raise SystemExit(1)
 
-logger.debug(" Importing tasks...")
-app.autodiscover_tasks(["fuel_route_api"])
+from fuel_route_api.tasks import calculate_route_tasks
+from fuel_route_api.tasks import send_verify_tasks
 
 
 if __name__ == "__main__":

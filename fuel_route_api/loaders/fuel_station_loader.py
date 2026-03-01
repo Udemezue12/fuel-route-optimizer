@@ -5,15 +5,10 @@ import pandas as pd
 from asgiref.sync import sync_to_async
 from django.contrib.gis.geos import Point
 from django.core.cache import cache
-
-from fuel_route_api.dependencies import (
-    CacheDependencies,
-    CacheKeyDependencies,
-    CRUDDependencies,
-)
-from fuel_route_api.models import FuelStation
-from fuel_route_api.route_service import TomTomService
-from fuel_route_api.schema import GeocodeInputSchema
+from fuel_route_api.models.models import FuelStation
+from fuel_route_api.schema.schema import GeocodeInputSchema
+from fuel_route_api.services.tomtom_service import TomTomService
+from fuel_route_api.services.geoapify_service import GeoapifyServiceAsync
 
 
 class FuelStationLoader:
@@ -24,11 +19,7 @@ class FuelStationLoader:
     ):
         self.csv_path = csv_path
         self.marker_path = marker_path
-        self.route_service = TomTomService(
-            cache_deps=CacheDependencies(),
-            cache_key_deps=CacheKeyDependencies(),
-            deps=CRUDDependencies(),
-        )
+        self.route_service = TomTomService()
 
     def clean_address(self, address: str) -> str:
         if not address:

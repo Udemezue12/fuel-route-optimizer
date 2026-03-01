@@ -1,5 +1,5 @@
-from fuel_route_api.models import FuelStation
-from fuel_route_api.schema import FuelStop
+from fuel_route_api.models.models import FuelStation
+from fuel_route_api.schema.schema import FuelStop
 
 
 def serialize_station(station: FuelStation) -> FuelStop:

@@ -1,6 +1,18 @@
+from django.contrib.auth.models import AbstractUser
 from django.contrib.gis.db import models
 
 
+class CustomUser(AbstractUser):
+    phone_number = models.CharField(
+        max_length=20,
+        blank=True,
+        null=True,
+        unique=True
+    )
+    is_verified = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.username
 class FuelStation(models.Model):
     opis_truckstop_id = models.CharField(max_length=100, unique=True)
     truckstop_name = models.CharField(max_length=255)

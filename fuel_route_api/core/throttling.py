@@ -5,10 +5,10 @@ from ninja_extra.throttling import AnonRateThrottle, UserRateThrottle
 class CustomAnonRateThrottle(AnonRateThrottle):
     scope = "anon"
     cache = caches["default"]
-    rate = "50/hour"
+    rate = "3/min"
 
 
 class CustomUserThrottle(UserRateThrottle):
     scope = "user"
     cache = caches["default"]
-    rate = "200/hour"
+    rate = "4/min"

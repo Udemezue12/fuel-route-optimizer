@@ -1,5 +1,5 @@
-from .models import FuelStation
-from .schema import CalculateFuelStop, CalculateFuelStopLocation
+from fuel_route_api.models.models import FuelStation
+from fuel_route_api.schema.schema import CalculateFuelStop, CalculateFuelStopLocation
 
 
 def fuelstation_to_pydantic(

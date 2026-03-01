@@ -17,7 +17,7 @@ from starlette.middleware.sessions import SessionMiddleware
 from starlette.routing import Mount
 from starlette.staticfiles import StaticFiles
 
-from fuel_route_api.env import SECRET_KEY
+from fuel_route_api.core.env import SECRET_KEY
 from fuel_route_api.loaders.fuel_station_loader import FuelStationLoader
 
 django_app = get_asgi_application()
@@ -25,8 +25,8 @@ django_app = get_asgi_application()
 
 async def startup():
     loader = FuelStationLoader()
-    result = await loader.async_load()
-    print(f"[Startup] {result}")
+    # result = await loader.async_load()
+    print(f"[Startup]")
 
 
 application = Starlette(

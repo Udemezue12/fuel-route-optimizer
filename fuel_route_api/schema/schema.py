@@ -1,16 +1,38 @@
+import re
 from decimal import Decimal
 from typing import Annotated, Any, Dict, List, Optional
 
 from ninja import Schema
-from pydantic import EmailStr, Field, constr, field_validator
-
+from pydantic import (
+    EmailStr,
+    Field,
+    ValidationInfo,
+    constr,
+    field_validator,
+    model_validator,
+)
+import phonenumbers
 
 class UserIn(Schema):
     username: Annotated[str, constr(min_length=4, max_length=20)]
     first_name: Annotated[str, constr(min_length=4, max_length=20)]
     last_name: Annotated[str, constr(min_length=4, max_length=20)]
     password: Annotated[str, constr(min_length=6)]
+    confirm_password: Annotated[str, constr(min_length=6)]
     email: EmailStr
+    phone_number:str
+    @field_validator("phone_number")
+    @classmethod
+    def validate_phone(cls, value: str):
+        try:
+            parsed = phonenumbers.parse(value, None)
+            if not phonenumbers.is_valid_number(parsed):
+                raise ValueError("Invalid phone number. Use full international format.")
+            return phonenumbers.format_number(
+                parsed, phonenumbers.PhoneNumberFormat.E164
+            )
+        except Exception:
+            raise ValueError("Invalid phone number format. Use e.g. +2348012345678")
 
     @field_validator("first_name", "last_name")
     @classmethod
@@ -18,6 +40,33 @@ class UserIn(Schema):
         if not v.replace(" ", "").isalpha():
             raise ValueError("Name must only contain letters and spaces")
         return v
+    @field_validator("confirm_password")
+    @classmethod
+    def validate_confirm_password(cls, v, info: ValidationInfo):
+        password = info.data.get("password")
+
+        if password and v != password:
+            raise ValueError("Passwords do not match")
+
+        return v
+    @field_validator("password")
+    @classmethod
+    def validate_password(cls, v: str):
+        errors = []
+        if len(v) < 7:
+            errors.append("≥7 characters")
+        if not re.search(r"[A-Z]", v):
+            errors.append("uppercase letter")
+        if not re.search(r"[a-z]", v):
+            errors.append("lowercase letter")
+        if not re.search(r"\d", v):
+            errors.append("number")
+        if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", v):
+            errors.append("special character")
+        if errors:
+            raise ValueError("Password must contain: " + ", ".join(errors))
+        return v
+
 
 
 class UserOut(Schema):
@@ -38,7 +87,34 @@ class LoginSchema(Schema):
     class Config:
         from_attributes = True
 
+class VerifyEmail(Schema):
+    otp: Optional[str] = None
+    token: Optional[str] = None
+    @model_validator(mode="before")
+    @classmethod
+    def validate_token_or_otp(cls, values):
+        token = values.get("token")
+        otp = values.get("otp")
+        if not token and not otp:
+            raise ValueError("Either token or otp must be provided")
+        return values
+class ForgotPasswordSchema(Schema):
+    email: EmailStr
 
+
+class ResetPasswordSchema(Schema):
+    token: Optional[str] = None
+    otp: Optional[str] = None
+    new_password: str
+
+    @model_validator(mode="before")
+    @classmethod
+    def validate_token_or_otp(cls, values):
+        token = values.get("token")
+        otp = values.get("otp")
+        if not token and not otp:
+            raise ValueError("Either token or otp must be provided")
+        return values
 class CsrfTokenSchema(Schema):
     csrf_token: str
 

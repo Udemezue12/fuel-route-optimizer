@@ -6,8 +6,8 @@ from django.utils.timezone import now
 from jwt import decode
 from jwt.exceptions import DecodeError, ExpiredSignatureError
 
-from .env import ALGORITHM, SECRET_KEY
-from .dependencies import CacheDependencies
+from fuel_route_api.core.env import ALGORITHM, SECRET_KEY
+from fuel_route_api.core.cache_dependencies import AsyncCacheDependencies
 
 
 class JWTAuthenticationMiddleware(MiddlewareMixin):

@@ -3,9 +3,9 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from ninja.testing import TestAsyncClient
 
-from fuel_route_api.models import FuelStation
-from fuel_route_api.register_controller import api
-from fuel_route_api.tasks import calculate_route_task
+from fuel_route_api.models.models import FuelStation
+from fuel_route_api.api_controller import api
+from fuel_route_api.calculate_route_tasks import calculate_route_task
 
 
 @pytest.mark.django_db
