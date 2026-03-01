@@ -1,16 +1,13 @@
 #!/bin/bash
 set -e
 
-echo "▶️ Applying Django migrations..."
-python manage.py makemigrations --noinput
-python manage.py migrate --noinput
-echo "✅ Migrations done."
 
-echo "📦 Collecting static files..."
+
+echo "Collecting static files..."
 python manage.py collectstatic --noinput
-echo "✅ Static files collected."
+echo "Static files collected."
 
-echo "🔄 Verifying Redis Cloud connection..."
+echo "Verifying Redis Cloud connection..."
 python - <<'PYCODE'
 import os, redis
 url = os.getenv("REDIS_URL")
@@ -19,8 +16,8 @@ try:
     r.ping()
     print(f"✅ Redis connection successful to: {url}")
 except Exception as e:
-    print(f"❌ Redis connection failed: {e}")
+    print(f"Redis connection failed: {e}")
 PYCODE
 
-echo "🚀 Starting Supervisor to manage Uvicorn and Celery..."
+echo "Starting Supervisor to manage Uvicorn and Celery..."
 exec /usr/bin/supervisord -n -c /etc/supervisor/conf.d/supervisord.conf
