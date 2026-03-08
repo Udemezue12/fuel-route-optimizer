@@ -27,23 +27,23 @@ api.register_controllers(
 )
 
 
-# @api.exception_handler(Exception)
-# def global_exception_handler(request, exc):
+@api.exception_handler(Exception)
+def global_exception_handler(request, exc):
 
-#     trace_id = request.headers.get("X-Request-ID", "none")
+    trace_id = request.headers.get("X-Request-ID", "none")
 
-#     client_ip = request.META.get("REMOTE_ADDR", "unknown")
+    client_ip = request.META.get("REMOTE_ADDR", "unknown")
 
-#     logger.error(
-#         f"[GLOBAL ERROR] TraceID={trace_id} | "
-#         f"Path={request.path} | "
-#         f"Method={request.method} | "
-#         f"Client={client_ip} | "
-#         f"Error={exc}",
-#         exc_info=True,
-#     )
+    logger.error(
+        f"[GLOBAL ERROR] TraceID={trace_id} | "
+        f"Path={request.path} | "
+        f"Method={request.method} | "
+        f"Client={client_ip} | "
+        f"Error={exc}",
+        exc_info=True,
+    )
 
-#     return api.create_response(
+    return api.create_response(
 #         request,
 #         {"detail": get_friendly_message(exc)},
 #         status=500,
